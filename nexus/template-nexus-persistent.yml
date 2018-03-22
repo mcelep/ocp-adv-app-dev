@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: nexus3-persistent
+  annotations:
+    openshift.io/display-name: "Nexus 3 - Persistent"
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: nexus3
+    name: nexus3
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: nexus3
+      deploymentconfig: nexus3
+    strategy:
+      recreateParams:
+        timeoutSeconds: 900
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        labels:
+          app: nexus3
+          deploymentconfig: nexus3
+      spec:
+        containers:
+        - image: sonatype/nexus3:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          name: nexus3
+          ports:
+          - containerPort: 8081
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 100
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          resources:
+            limits:
+              cpu: 1500m
+              memory: "${MAXIMUM_MEMORY}"
+            requests:
+              cpu: 500m
+              memory: "${REQUESTED_MEMORY}"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /nexus-data
+            name: nexus-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: nexus-data
+          persistentVolumeClaim:
+            claimName: nexus3
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: nexus3
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    name: nexus3
+  spec:
+    ports:
+    - port: 8081
+      protocol: TCP
+      targetPort: 8081
+    selector:
+      app: nexus3
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    name: nexus3-docker
+  spec:
+    ports:
+    - port: 5000
+      protocol: TCP
+      targetPort: 5000
+    selector:
+      app: nexus3
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    name: nexus3
+  spec:
+    to:
+      kind: Service
+      name: nexus3
+      weight: 100
+    wildcardPolicy: None
+parameters:
+- description: Volume space available for data, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  name: VOLUME_CAPACITY
+  required: true
+  value: 5Gi
+- description: Requested memory, e.g. 512Mi, 2Gi.
+  displayName: Requested memory
+  name: REQUESTED_MEMORY
+  required: true
+  value: 1Gi
+- description: Maximum memory, e.g. 512Mi, 2Gi.
+  displayName: Maximum memory
+  name: MAXIMUM_MEMORY
+  required: true
+  value: 2Gi
