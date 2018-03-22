@@ -1,0 +1,234 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: sonarqube
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+      template.alpha.openshift.io/wait-for-ready: "true"
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: sonarqube_db
+      template: postgresql-persistent-template
+    name: postgresql
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      name: postgresql
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: sonarqube_db
+          name: postgresql
+      spec:
+        containers:
+        - env:
+          - name: POSTGRESQL_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: postgresql-secrets
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: postgresql-secrets
+          - name: POSTGRESQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: postgresql-secrets
+          image: registry.access.redhat.com/rhscl/postgresql-95-rhel7@sha256:f90b4ce7c2328e2f38d01e37b3a69cf60f06433df907ecb9432b0934af9624ed
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5432
+            timeoutSeconds: 1
+          name: postgresql
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -i
+              - -c
+              - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
+                'SELECT 1'
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 512Mi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/pgsql/data
+            name: postgresql-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: postgresql-data
+          persistentVolumeClaim:
+            claimName: postgresql
+        - name: postgresql-secrets
+          secret:
+            secretName: postgresql-secrets
+    test: false
+
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: postgresql-secrets
+  stringData:
+    database-name: ${POSTGRESQL_DATABASE} 
+    database-user: ${POSTGRESQL_USERNAME} 
+    database-password: ${POSTGRESQL_PASSWORD} 
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+      template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
+    creationTimestamp: null
+    labels:
+      app: sonarqube_db
+      template: postgresql-persistent-template
+    name: postgresql
+  spec:
+    ports:
+    - name: postgresql
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      name: postgresql
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    ports:
+    - name: 9000-tcp
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+    selector:
+      app: sonarqube
+      deploymentconfig: sonarqube
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    port:
+      targetPort: 9000-tcp
+    to:
+      kind: Service
+      name: sonarqube
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: postgresql
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${POSTGRESQL_VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: sonarqube
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${SONARQUBE_VOLUME_CAPACITY}
+
+parameters:
+- description: Volume space available for postgresql, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  name: POSTGRESQL_VOLUME_CAPACITY
+  required: true
+  value: 5Gi
+- description: Volume space available for sonarqube, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  name: SONARQUBE_VOLUME_CAPACITY
+  required: true
+  value: 5Gi
+- description: Postgesql user name
+  displayName: Postgesql user name
+  name: POSTGRESQL_USERNAME
+  required: true
+  value: user
+- description: Postgesql password
+  displayName: Postgesql password
+  name: POSTGRESQL_PASSWORD
+  required: true
+  value: Test123456
+- description: Postgesql database
+  displayName: Postgesql database
+  name: POSTGRESQL_DATABASE
+  required: true
+  value: sonarqube
+- description: Requested memory, e.g. 512Mi, 2Gi.
+  displayName: Requested memory
+  name: REQUESTED_MEMORY
+  required: true
+  value: 1Gi
+- description: Maximum memory, e.g. 512Mi, 2Gi.
+  displayName: Maximum memory
+  name: MAXIMUM_MEMORY
+  required: true
+  value: 2Gi
