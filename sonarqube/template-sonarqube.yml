@@ -41,17 +41,17 @@ objects:
             valueFrom:
               secretKeyRef:
                 key: database-user
-                name: postgresql-secrets
+                name: sonarqube-postgresql-secrets
           - name: POSTGRESQL_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: database-password
-                name: postgresql-secrets
+                name: sonarqube-postgresql-secrets
           - name: POSTGRESQL_DATABASE
             valueFrom:
               secretKeyRef:
                 key: database-name
-                name: postgresql-secrets
+                name: sonarqube-postgresql-secrets
           image: registry.access.redhat.com/rhscl/postgresql-95-rhel7@sha256:f90b4ce7c2328e2f38d01e37b3a69cf60f06433df907ecb9432b0934af9624ed
           imagePullPolicy: IfNotPresent
           livenessProbe:
@@ -99,9 +99,6 @@ objects:
         - name: postgresql-data
           persistentVolumeClaim:
             claimName: postgresql
-        - name: postgresql-secrets
-          secret:
-            secretName: postgresql-secrets
     test: false
 
 - apiVersion: v1
@@ -199,7 +196,7 @@ objects:
 - apiVersion: v1
   kind: Secret
   metadata:
-    name: postgresql-secrets
+    name: sonarqube-postgresql-secrets
   stringData:
     database-name: ${POSTGRESQL_DATABASE} 
     database-user: ${POSTGRESQL_USERNAME} 

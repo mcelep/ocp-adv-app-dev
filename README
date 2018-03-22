@@ -1,0 +1,4 @@
+Install CI/CD
+
+Gogs
+oc cp $(oc get pods --selector deploymentconfig=gogs -o json | jq -r '.items[0].metadata.name'):/opt/gogs/custom/conf/app.ini app.ini
