@@ -1,5 +1,4 @@
 #!/bin/bash
-# Import a template into OCP and create a new app based on the template
 set -ex
 source env.sh
 
@@ -12,3 +11,6 @@ oc policy add-role-to-user edit system:serviceaccount:$CICD_PROJECT:default -n $
 
 oc policy add-role-to-user edit system:serviceaccount:$CICD_PROJECT:jenkins -n $PROD_PROJECT
 oc policy add-role-to-user edit system:serviceaccount:$CICD_PROJECT:default -n $PROD_PROJECT
+oc policy add-role-to-user \
+    system:image-puller system:serviceaccount:$PROD_PROJECT:default \
+    --namespace=$DEV_PROJECT
