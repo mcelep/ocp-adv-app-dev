@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: nationalparks
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: nationalparks
+    name: nationalparks
+  spec:
+    lookupPolicy:
+      local: false
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: nationalparks
+    name: nationalparks
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: nationalparks:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: nationalparks
+      git:
+        ref: master
+        uri: http://gogs-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com/mc/parks
+      sourceSecret:
+        name: gogs-repo-secret
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: jboss-eap70-openshift:1.6
+          namespace: openshift
+      type: Source
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: nationalparks
+    name: nationalparks
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: nationalparks
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: nationalparks
+          deploymentconfig: nationalparks
+      spec:
+        containers:
+        - env:
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: mongodb-secret
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: mongodb-secret
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: mongodb-secret
+          image: docker-registry.default.svc:5000/mitzicom-poc-dev/mlbparks:latest
+          imagePullPolicy: Always
+          name: mlbparks
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          - containerPort: 8778
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false

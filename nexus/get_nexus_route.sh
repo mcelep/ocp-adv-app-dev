@@ -2,5 +2,5 @@
 set -ex
 source ../env.sh
 oc project $CICD_PROJECT
-oc new-app -f template-nexus-persistent.yml 
 
+oc get route nexus3 --template='{{ .spec.host }}'

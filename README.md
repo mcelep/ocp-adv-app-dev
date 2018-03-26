@@ -39,7 +39,12 @@ git clone https://github.com/wkulhanek/ParksMap.git
 cd ParksMap && git remote add gogs $PRIVATE_REPO_URL
 git push gogs
 ```
-
+Update maven settings in order to point maven to the newly created Nexus.
+```
+sed -i.bak 's|'nexus3-xyz-nexus.apps.wk.example.opentlc.com'|'nexus3-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com'|g' nexus_settings.xml
+sed -i.bak 's|'nexus3.xyz-nexus.svc.cluster.local'|'nexus3.mitzicom-poc-cicd.svc.cluster.local'|g' nexus_settings_openshift.xml
+rm *.bak
+```
 
 
 
