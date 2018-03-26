@@ -39,6 +39,7 @@ git clone https://github.com/wkulhanek/ParksMap.git
 cd ParksMap && git remote add gogs $PRIVATE_REPO_URL
 git push gogs
 ```
+
 Update maven settings in order to point maven to the newly created Nexus.
 ```
 sed -i.bak 's|'nexus3-xyz-nexus.apps.wk.example.opentlc.com'|'nexus3-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com'|g' nexus_settings.xml
@@ -58,5 +59,8 @@ oc cp $(oc get pods --selector deploymentconfig=gogs -o json | jq -r '.items[0].
 ### Jenkins
 
 ## Prepare Applications
+
+oc policy add-role-to-user view --serviceaccount=default
+
 
 

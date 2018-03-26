@@ -15,16 +15,19 @@ objects:
         storage: ${MONGODB_VOLUME_CAPACITY}
 - apiVersion: v1
   data:
-    database-admin-password: Um0wU1Fsd1VjQ0JYSTR0RQ==
-    database-name: c2FtcGxlZGI=
-    database-password: Vm5CT0VtNkdxSFBvMUFoeA==
-    database-user: dXNlcjBLQg==
-  kind: Secret
+    database-admin-password: password
+    database-name: maps
+    database-password: password
+    database-user: user
+    database-host: mongodb
+    database-port: "27017"
+    database-rs: rs0
+  kind: ConfigMap
   metadata:
     labels:
       app: mongodb
       template: mongodb-persistent-template
-    name: mongodb-secret
+    name: mongodb-configmap
   type: Opaque
 - apiVersion: v1
   kind: DeploymentConfig
@@ -55,24 +58,24 @@ objects:
         - env:
           - name: MONGODB_USER
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-user
-                name: mongodb-secret
+                name: mongodb-configmap
           - name: MONGODB_PASSWORD
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-password
-                name: mongodb-secret
+                name: mongodb-configmap
           - name: MONGODB_ADMIN_PASSWORD
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-admin-password
-                name: mongodb-secret
+                name: mongodb-configmap
           - name: MONGODB_DATABASE
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-name
-                name: mongodb-secret
+                name: mongodb-configmap
           image: registry.access.redhat.com/rhscl/mongodb-32-rhel7@sha256:2c44d3b3ac7945d58d92f4c53adf32942256883b75799a617da550a602a2e948
           imagePullPolicy: IfNotPresent
           livenessProbe:
@@ -120,7 +123,22 @@ objects:
         - name: mongodb-data
           persistentVolumeClaim:
             claimName: mongodb
-
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: mongodb
+    name: mongodb
+  spec:
+    ports:
+    - name: "27017"
+      port: 27017
+      protocol: TCP
+      targetPort: 27017
+    selector:
+      app: mongodb
+    sessionAffinity: None
+    type: ClusterIP
 parameters:
   - description: Volume space available for MongoDB, e.g. 512Mi, 2Gi.
     displayName: Volume Capacity

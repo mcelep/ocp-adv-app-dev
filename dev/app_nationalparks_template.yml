@@ -19,6 +19,8 @@ objects:
       app: nationalparks
     name: nationalparks
   spec:
+    triggers:
+      - type: "ConfigChange"
     output:
       to:
         kind: ImageStreamTag
@@ -72,22 +74,32 @@ objects:
         - env:
           - name: DB_USERNAME
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-user
-                name: mongodb-secret
+                name: mongodb-configmap
           - name: DB_PASSWORD
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-password
-                name: mongodb-secret
+                name: mongodb-configmap
           - name: DB_NAME
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-name
-                name: mongodb-secret
-          image: docker-registry.default.svc:5000/mitzicom-poc-dev/mlbparks:latest
+                name: mongodb-configmap
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: database-host
+                name: mongodb-configmap
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: database-port
+                name: mongodb-configmap
+          image: docker-registry.default.svc:5000/mitzicom-poc-dev/nationalparks:latest
           imagePullPolicy: Always
-          name: mlbparks
+          name: nationalparks
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -98,9 +110,40 @@ objects:
           resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        schedulerName: default-scheduler
-        securityContext: {}
-        terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
     test: false
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: nationalparks
+    name: nationalparks
+  spec:
+    ports:
+    - name: "8080"
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: nationalparks
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      app: nationalparks
+      type: parksmap-backend
+    name: nationalparks
+  spec:
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: nationalparks
+      weight: 100
+    wildcardPolicy: None

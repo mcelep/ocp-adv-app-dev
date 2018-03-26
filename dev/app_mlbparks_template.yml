@@ -27,6 +27,8 @@ objects:
       app: mlbparks
     name: mlbparks
   spec:
+    triggers:
+    - type: "ConfigChange"
     output:
       to:
         kind: ImageStreamTag
@@ -80,19 +82,29 @@ objects:
         - env:
           - name: DB_USERNAME
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-user
-                name: mongodb-secret
+                name: mongodb-configmap
           - name: DB_PASSWORD
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-password
-                name: mongodb-secret
+                name: mongodb-configmap
           - name: DB_NAME
             valueFrom:
-              secretKeyRef:
+              configMapKeyRef:
                 key: database-name
-                name: mongodb-secret
+                name: mongodb-configmap
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: database-host
+                name: mongodb-configmap
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: database-port
+                name: mongodb-configmap
           image: docker-registry.default.svc:5000/mitzicom-poc-dev/mlbparks:latest
           imagePullPolicy: Always
           name: mlbparks
@@ -112,3 +124,34 @@ objects:
         securityContext: {}
         terminationGracePeriodSeconds: 30
     test: false
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: mlbparks
+    name: mlbparks
+  spec:
+    ports:
+    - name: "8080"
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: mlbparks
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      app: mlbparks
+      type: parksmap-backend
+    name: mlbparks
+  spec:
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: mlbparks
+      weight: 100
+    wildcardPolicy: None
