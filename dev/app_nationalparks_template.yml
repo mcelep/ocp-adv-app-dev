@@ -40,7 +40,7 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: jboss-eap70-openshift:1.6
+          name: redhat-openjdk18-openshift:1.2
           namespace: openshift
       type: Source
 - apiVersion: v1
