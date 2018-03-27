@@ -8,7 +8,7 @@ objects:
   metadata:
     name: "mongodb"
   spec:
-    serviceName: "mongodb-internal"
+    serviceName: "mongodb"
     replicas: 3
     template:
       metadata:
@@ -27,19 +27,40 @@ objects:
                 mountPath: "/var/lib/mongodb/data"
             env:
               - name: MONGODB_DATABASE
-                value: ${MONGODB_DATABASE}
+                valueFrom:
+                  configMapKeyRef:
+                    key: database-name
+                    name: mongodb-configmap
               - name: MONGODB_USER
-                value: ${MONGODB_USER}
+                valueFrom:
+                  configMapKeyRef:
+                    key: database-user
+                    name: mongodb-configmap
               - name: MONGODB_PASSWORD
-                value: ${MONGODB_PASSWORD}
+                valueFrom:
+                  configMapKeyRef:
+                    key: database-password
+                    name: mongodb-configmap
               - name: MONGODB_ADMIN_PASSWORD
-                value: ${MONGODB_ADMIN_PASSWORD}
+                valueFrom:
+                  configMapKeyRef:
+                    key: database-admin-password
+                    name: mongodb-configmap
               - name: MONGODB_REPLICA_NAME
-                value: ${MONGODB_REPLICA_NAME}
+                valueFrom:
+                  configMapKeyRef:
+                    key: database-rs
+                    name: mongodb-configmap
               - name: MONGODB_KEYFILE_VALUE
-                value: ${MONGODB_KEYFILE_VALUE}
+                valueFrom:
+                  configMapKeyRef:
+                    key: database-keyfile
+                    name: mongodb-configmap
               - name: MONGODB_SERVICE_NAME
-                value: ${MONGODB_SERVICE_NAME}
+                valueFrom:
+                  configMapKeyRef:
+                    key: service-name
+                    name: mongodb-configmap
             readinessProbe:
               exec:
                 command:
@@ -54,11 +75,11 @@ objects:
           accessModes: [ ReadWriteOnce ]
           resources:
             requests:
-              storage: ${MONGODB_VOLUME_CAPACITY}
+              storage: 5Gi
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "mongodb-internal"
+    name: mongodb
     labels:
       name: "mongodb"
     annotations:
@@ -70,44 +91,3 @@ objects:
         port: 27017
     selector:
       name: "mongodb"
-parameters:
-- description: Volume space available for MongoDB, e.g. 512Mi, 2Gi.
-  displayName: Volume Capacity
-  name: MONGODB_VOLUME_CAPACITY
-  required: true
-  value: 4Gi
-- description: Mongodb user name
-  displayName: Mongodb user name
-  name: MONGODB_USER
-  required: true
-  value: mongodb_user
-- description: Mongodb password
-  displayName: Mongodb password
-  name: mongodb_password
-  required: true
-  value: Test123456
-- description: Mongodb Admin password
-  displayName: Mongodb Admin password
-  name: MONGODB_ADMIN_PASSWORD
-  required: true
-  value: Test123456
-- description: Mongodb database
-  displayName: Mongodb database
-  name: MONGODB_DATABASE
-  required: true
-  value: mongodb
-- description: Mongodb replicaset name
-  displayName: Mongodb replicaset name
-  name: MONGODB_REPLICA_NAME
-  required: true
-  value: "rs0"  
-- description: Mongodb keyfile value
-  displayName: Mongodb keyfile value
-  name: MONGODB_KEYFILE_VALUE
-  required: true
-  value: "12345678901234567890"
-- description: Mongodb service name
-  displayName: Mongodb service name
-  name: MONGODB_SERVICE_NAME
-  required: true
-  value: "mongodb-internal"
