@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: mlbparks
+objects:
+- apiVersion: v1
+  data:
+    password: VGVzdDEyMw==
+    username: bWM=
+  kind: Secret
+  metadata:
+    name: gogs-repo-secret
+  type: kubernetes.io/basic-auth
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: mlbparks
+    name: mlbparks
+  spec:
+    lookupPolicy:
+      local: false
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: mlbparks
+    name: mlbparks
+  spec:
+    triggers:
+    - type: "ConfigChange"
+    output:
+      to:
+        kind: ImageStreamTag
+        name: mlbparks:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: mlbparks
+      git:
+        ref: master
+        uri: http://gogs-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com/mc/parks
+      sourceSecret:
+        name: gogs-repo-secret
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: jboss-eap70-openshift:1.6
+          namespace: openshift
+      type: Source

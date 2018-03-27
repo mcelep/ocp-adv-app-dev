@@ -14,22 +14,6 @@ objects:
       requests:
         storage: ${MONGODB_VOLUME_CAPACITY}
 - apiVersion: v1
-  data:
-    database-admin-password: password
-    database-name: maps
-    database-password: password
-    database-user: user
-    database-host: mongodb
-    database-port: "27017"
-    database-rs: rs0
-  kind: ConfigMap
-  metadata:
-    labels:
-      app: mongodb
-      template: mongodb-persistent-template
-    name: mongodb-configmap
-  type: Opaque
-- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     generation: 1
