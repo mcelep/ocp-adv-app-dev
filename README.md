@@ -43,11 +43,9 @@ git push gogs
 Update maven settings in order to point maven to the newly created Nexus.
 ```
 sed -i.bak 's|'nexus3-xyz-nexus.apps.wk.example.opentlc.com'|'nexus3-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com'|g' nexus_settings.xml
-sed -i.bak 's|'nexus3.xyz-nexus.svc.cluster.local'|'nexus3.mitzicom-poc-cicd.svc.cluster.local'|g' nexus_settings_openshift.xml
+sed -i.bak 's|'nexus3.xyz-nexus.svc.cluster.local'|'nexus3.mitzicom-poc-cicd.svc.cluster.local:8081'|g' nexus_settings_openshift.xml
 rm *.bak
 ```
-
-
 
 
 For copying the gogs configuration after setting it up:
@@ -57,10 +55,17 @@ oc cp $(oc get pods --selector deploymentconfig=gogs -o json | jq -r '.items[0].
 
 
 ### Jenkins
+Prepare the slave image which includes *skopeo* binary by running the "build.sh" in *jenkins-slave-appdev* folder.
+
 
 ## Prepare Applications
 
 oc policy add-role-to-user view --serviceaccount=default
+
+oc new-build --binary=true --name=park --image-stream=redhat-openjdk18-openshift:1.2
+oc new-build --binary=true --name=nationalparks --image-stream=redhat-openjdk18-openshift:1.2
+oc new-build --binary=true --name=mlbparks --image-stream=jboss-eap70-openshift:1.6
+
 
 
 
