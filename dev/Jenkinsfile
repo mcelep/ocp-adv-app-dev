@@ -1,23 +1,23 @@
 node('maven-appdev') {
-    def contextDir = 'parksmap'
-    def app = 'parks'
-    def cicdProject = 'mitzicom-poc-cicd'
-    def devProject = 'mitzicom-poc-dev'
-    def prodProject = 'mitzicom-poc-prod'
-    def appUrl = "http://${app}.${devProject}.svc:8080"
+  def contextDir = 'parksmap'
+  def app = 'parks'
+  def cicdProject = 'mitzicom-poc-cicd'
+  def devProject = 'mitzicom-poc-dev'
+  def prodProject = 'mitzicom-poc-prod'
+  def appUrl = "http://${app}.${devProject}.svc:8080"
   // Define Maven Command. Make sure it points to the correct
   // settings for our Nexus installation (use the service to
   // bypass the router). The file nexus_openshift_settings.xml
   // needs to be in the Source Code repository.
+  def pomFile = "${contextDir}/pom.xml"
+  def mvnCmd = "mvn -s nexus_settings_openshift.xml -f ${pomFile}"
 
   // Checkout Source Code
   stage('Checkout Source') {
     checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'f5cc5f5b-7342-421a-b82d-c94124aad7be', url: 'http://gogs-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com/mc/parks.git']]])
   }
 
-  def pomFile = "${contextDir}/pom.xml"
-  def mvnCmd = "mvn -s nexus_settings_openshift.xml -f ${pomFile}"
-
+ 
   // The following variables need to be defined at the top level
   // and not inside the scope of a stage - otherwise they would not
   // be accessible from other stages.
@@ -30,18 +30,19 @@ node('maven-appdev') {
   def devTag  = "${version}-${BUILD_NUMBER}"
   // Set the tag for the production image: version
   def prodTag = version
-  
-
      
   // Using Maven build the war file
   // Do not run tests in this step
   stage('Build jar/war') {
     //echo "Building version ${version}"
-    // TBD
-    sh "${mvnCmd} clean package spring-boot:repackage -DskipTests -Dcom.redhat.xpaas.repo.redhatga"
+    if(app=='parks' ){
+        sh "${mvnCmd} clean package spring-boot:repackage -DskipTests -Dcom.redhat.xpaas.repo.redhatga"
+    }else{
+        sh "${mvnCmd} clean package -Dmaven.test.skip=true"
+    }
   }
 
-  // Using Maven run the unit tests
+  // Running unit tests & code coverage in parallel
   stage('Unit Tests & Code coverage') {
       parallel 'Unit Test': {
             sh "${mvnCmd} test"
@@ -53,7 +54,6 @@ node('maven-appdev') {
 
     stage('Publish to Nexus') {
       echo "Publish to Nexus"
-      // Replace xyz-nexus with the name of your Nexus project
       sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::http://nexus3.mitzicom-poc-cicd.svc.cluster.local:8081/repository/releases"
     }
   // Build the OpenShift Image in OpenShift and tag it.
@@ -94,15 +94,13 @@ node('maven-appdev') {
   // Copy Image to Nexus Docker Registry
   stage('Copy Image to Nexus Docker Registry') {
     echo "Copy image to Nexus Docker Registry"
-    def token = sh script: 'oc whoami -t', returnStdout: true
-
-    sh "skopeo copy --src-creds='${token}' --dest-creds=admin:admin123 --src-tls-verify=false --dest-tls-verify=false docker://docker-registry.default.svc:5000/${devProject}/${app}:${prodTag} docker://nexus3-docker.${cicdProject}.svc:5000/${devProject}/${app}:${prodTag}"
+    sh script: "skopeo copy --src-creds=user:\$(oc whoami -t) --dest-creds=admin:admin123 --src-tls-verify=false --dest-tls-verify=false docker://docker-registry.default.svc:5000/${devProject}/${app}:${prodTag} docker://nexus3-docker.${cicdProject}.svc:5000/${devProject}/${app}:${prodTag}"
   }
 
   // Blue/Green Deployment into Production
   // -------------------------------------
   // Do not activate the new version yet.
-  def destApp   = "tasks-green"
+  def destApp   = ""
   def activeApp = ""
 
   stage('Blue/Green Production Deployment') {
