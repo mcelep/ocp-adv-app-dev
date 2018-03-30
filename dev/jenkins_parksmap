@@ -1,6 +1,7 @@
 node('maven-appdev') {
+  def app = 'parksmap'
   def contextDir = 'parksmap'
-  def app = 'parks'
+  
   def cicdProject = 'mitzicom-poc-cicd'
   def devProject = 'mitzicom-poc-dev'
   def prodProject = 'mitzicom-poc-prod'
