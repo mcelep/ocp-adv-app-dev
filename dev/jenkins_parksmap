@@ -76,7 +76,7 @@ node('maven-appdev') {
   
   stage('Integration tests for backends'){
     openshiftVerifyService namespace: devProject, svcName: app, verbose: 'false'
-    loadAppDataForBackEndApps()
+    loadAppDataForBackEndApps(app,appUrl)
     openshiftTag alias: 'false', destStream: app, destTag: prodTag, destinationAuthToken: '', destinationNamespace: devProject, namespace: devProject, srcStream: app, srcTag: devTag, verbose: 'false'
   }
 
@@ -118,7 +118,7 @@ node('maven-appdev') {
     openshiftVerifyService apiURL: '', authToken: '', namespace: prodProject, svcName: destApp, verbose: 'false'
 
 
-    loadAppDataForBackEndApps()
+    loadAppDataForBackEndApps(app,appUrl)
 
   }
 
@@ -150,7 +150,7 @@ def getArtifactIdFromPom(pom) {
   matcher ? matcher[0][1] : null
 }
 
-def loadAppDataForBackEndApps(){
+def loadAppDataForBackEndApps(app,appUrl){
   if(app=='mlbparks' || app == 'nationalparks'){
         echo 'Calling data load endpoint'
        def loadData ="curl -f ${appUrl}/ws/data/load".execute().with{
