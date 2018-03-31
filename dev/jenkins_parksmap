@@ -102,7 +102,7 @@ node('maven-appdev') {
     }else if(activeApp.endsWith('blue')){
       destApp = "${app}-green"
     }else{
-      throw new Exception('Active app should be blue or green')
+      assert false: 'Active app should be blue or green'
     }
 
     echo "Destapp: ${destApp}"
