@@ -18,4 +18,5 @@ oc patch dc/mlbparks --type=json \
 
 
 #Parksmap
-oc new-app -f ../dev/template_parksmap.yml
+oc new-app -f ../dev/template_parksmap.yml  -p APP_NAME=parksmap-green
+oc new-app -f ../dev/template_parksmap.yml  -p APP_NAME=parksmap-blue

@@ -53,17 +53,15 @@ node('maven-appdev') {
     failFast: true
   }
 
-    stage('Publish to Nexus') {
-      echo "Publish to Nexus"
-      sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::http://nexus3.mitzicom-poc-cicd.svc.cluster.local:8081/repository/releases"
-    }
+  stage('Publish to Nexus') {
+    echo "Publish to Nexus"
+    sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::http://nexus3.mitzicom-poc-cicd.svc.cluster.local:8081/repository/releases"
+  }
   // Build the OpenShift Image in OpenShift and tag it.
   stage('Build and Tag OpenShift Image') {
     echo "Building OpenShift container image tasks:${devTag}"
    
     // Start Binary Build in OpenShift using the file we just published
-    // The filename is openshift-tasks.war in the 'target' directory of your current
-    // Jenkins workspace
     sh "oc start-build ${app} --follow --from-file=./${contextDir}/target/parksmap.jar -n ${devProject}"
     openshiftVerifyBuild bldCfg: app, checkForTriggeredDeployments: 'false', namespace: devProject, verbose: 'false', waitTime: ''
 
@@ -78,16 +76,7 @@ node('maven-appdev') {
   
   stage('Integration tests for backends'){
     openshiftVerifyService namespace: devProject, svcName: app, verbose: 'false'
-    if(app=='mlbparks' || app == 'nationalparks'){
-        echo 'Calling data load endpoint'
-       def loadData ="curl -f ${appUrl}/ws/data/load".execute().with{
-            def output = new StringWriter()
-            def error = new StringWriter()
-            it.waitForProcessOutput(output, error)
-            assert it.exitValue() == 0: "$error"
-            echo "Data load endpoint result:"+output
-        }
-    }
+    loadAppDataForBackEndApps()
     openshiftTag alias: 'false', destStream: app, destTag: prodTag, destinationAuthToken: '', destinationNamespace: devProject, namespace: devProject, srcStream: app, srcTag: devTag, verbose: 'false'
   }
 
@@ -105,7 +94,32 @@ node('maven-appdev') {
   def activeApp = ""
 
   stage('Blue/Green Production Deployment') {
-    // TBD
+    def activeApp = sh(script: "oc get route ${app} -o jsonpath=\'{ .spec.to.name }\' -n ${prodProject}", returnStdout: true)
+    echo "Active service: ${activeApp}"
+
+    if(activeApp.endsWith('green')){
+      destApp = "${app}-blue"
+    }else if(activeApp.endsWith('blue')){
+      destApp = "${app}-green"
+    }else{
+      throw new Exception('Active app should be blue or green')
+    }
+
+    echo "Destapp: ${destApp}"
+
+    sh "oc set image dc/${destApp} ${destApp}=${devProject}/${app}:${prodTag} -n ${prodProject}"
+    if(app!='parksmap'){
+     //Handle configurations 
+     
+    }
+
+    openshiftDeploy apiURL: '', authToken: '', depCfg: destApp, namespace: prodProject, verbose: 'false', waitTime: '180', waitUnit: 'sec'
+    openshiftVerifyDeployment apiURL: '', authToken: '', depCfg: destApp, namespace: prodProject, replicaCount: '1', verbose: 'false', verifyReplicaCount: 'true', waitTime: '180', waitUnit: 'sec'
+    openshiftVerifyService apiURL: '', authToken: '', namespace: prodProject, svcName: destApp, verbose: 'false'
+
+
+    loadAppDataForBackEndApps()
+
   }
 
   stage('Switch over to new Version') {
@@ -125,7 +139,7 @@ def getVersionFromPom(pom) {
   if(version.endsWith('.RELEASE')){
     version = version.substring(0,version.lastIndexOf('.'))
   }
-    return version
+  return version
 }
 def getGroupIdFromPom(pom) {
   def matcher = readFile(pom) =~ '<groupId>(.+)</groupId>'
@@ -134,5 +148,18 @@ def getGroupIdFromPom(pom) {
 def getArtifactIdFromPom(pom) {
   def matcher = readFile(pom) =~ '<artifactId>(.+)</artifactId>'
   matcher ? matcher[0][1] : null
+}
+
+def loadAppDataForBackEndApps(){
+  if(app=='mlbparks' || app == 'nationalparks'){
+        echo 'Calling data load endpoint'
+       def loadData ="curl -f ${appUrl}/ws/data/load".execute().with{
+            def output = new StringWriter()
+            def error = new StringWriter()
+            it.waitForProcessOutput(output, error)
+            assert it.exitValue() == 0: "$error"
+            echo "Data load endpoint result:"+output
+        }
+    }
 }
 
