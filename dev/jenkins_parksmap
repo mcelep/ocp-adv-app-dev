@@ -118,14 +118,20 @@ node('maven-appdev') {
     openshiftVerifyService apiURL: '', authToken: '', namespace: prodProject, svcName: destApp, verbose: 'false'
 
 
+    def health ="curl -f ${appUrl}/ws/healthz".execute().with{
+            def output = new StringWriter()
+            def error = new StringWriter()
+            it.waitForProcessOutput(output, error)
+            assert it.exitValue() == 0: "$error"
+            echo "App:${app} health:"+output
+    }
     loadAppDataForBackEndApps(app,appUrl)
 
   }
 
   stage('Switch over to new Version') {
-    // TBD
+    
     echo "Switching Production application to ${destApp}."
-    // TBD
   }
 
 }
