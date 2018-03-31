@@ -123,15 +123,18 @@ node('maven-appdev') {
             def error = new StringWriter()
             it.waitForProcessOutput(output, error)
             assert it.exitValue() == 0: "$error"
-            echo "App:${app} health:"+output
+            println "App:${app} health:"+output
     }
     loadAppDataForBackEndApps(app,appUrl)
 
   }
 
   stage('Switch over to new Version') {
-    
+    input message:  "Go live with the new version:${version} in production?"
     echo "Switching Production application to ${destApp}."
+    
+
+    sh(script: "oc patch route/${app} -p '{\"spec\":{\"to\":{\"name\":\"${destApp}\"}}}' -n ${prodProject}", returnStdout: true)
   }
 
 }
