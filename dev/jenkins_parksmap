@@ -1,6 +1,6 @@
 node('maven-appdev') {
-  def app = 'parksmap'
-  def contextDir = 'parksmap'
+  def app = ${params.APP}
+  def contextDir = app
   
   def cicdProject = 'mitzicom-poc-cicd'
   def devProject = 'mitzicom-poc-dev'
