@@ -11,6 +11,7 @@ oc policy add-role-to-user edit system:serviceaccount:$CICD_PROJECT:default -n $
 
 oc policy add-role-to-user edit system:serviceaccount:$CICD_PROJECT:jenkins -n $PROD_PROJECT
 oc policy add-role-to-user edit system:serviceaccount:$CICD_PROJECT:default -n $PROD_PROJECT
-oc policy add-role-to-user \
-    system:image-puller system:serviceaccount:$PROD_PROJECT:default \
-    --namespace=$DEV_PROJECT
+oc policy add-role-to-user system:image-puller system:serviceaccount:$PROD_PROJECT:default --namespace=$DEV_PROJECT
+
+oc policy add-role-to-user view --serviceaccount=default -n $PROD_PROJECT
+oc policy add-role-to-user view --serviceaccount=default -n $DEV_PROJECT

@@ -116,3 +116,7 @@ objects:
       name: ${APP_NAME}
       weight: 100
     wildcardPolicy: None
+parameters:
+- name: APP_NAME
+  value: nationalparks
+  required: true

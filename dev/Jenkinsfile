@@ -133,7 +133,17 @@ node('maven-appdev') {
   stage('Switch over to new Version') {
     input message:  "Go live with the new version:${version} in production?"
     echo "Switching Production application to ${destApp}."
+    
+    if (app!="parksmap") {
+      def result =sh(script: "oc label --overwrite service ${destApp} type=parksmap-backend -n ${prodProject}", returnStdout: true)
+      echo "Result of 'type=parksmap-backend' override: ${result}"
+      result = sh(script: "oc label --overwrite service ${activeApp} type=nada -n ${prodProject}", returnStdout: true)
+      echo "Result of 'type=nada' override: ${result}"
+    }
+
+
     sh(script: "oc patch route/${app} -p '{\"spec\":{\"to\":{\"name\":\"${destApp}\"}}}' -n ${prodProject}", returnStdout: true)
+    
   }
 
 }
