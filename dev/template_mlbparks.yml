@@ -7,8 +7,8 @@ objects:
   kind: ImageStream
   metadata:
     labels:
-      app: mlbparks
-    name: mlbparks
+      app: ${APP_NAME}
+    name: ${APP_NAME}
   spec:
     lookupPolicy:
       local: false  
@@ -16,12 +16,12 @@ objects:
   kind: DeploymentConfig
   metadata:
     labels:
-      app: mlbparks
-    name: mlbparks
+      app: ${APP_NAME}
+    name: ${APP_NAME}
   spec:
     replicas: 1
     selector:
-      deploymentconfig: mlbparks
+      deploymentconfig: ${APP_NAME}
     strategy:
       activeDeadlineSeconds: 21600
       resources: {}
@@ -36,8 +36,8 @@ objects:
       metadata:
         creationTimestamp: null
         labels:
-          app: mlbparks
-          deploymentconfig: mlbparks
+          app: ${APP_NAME}
+          deploymentconfig: ${APP_NAME}
       spec:
         containers:
         - env:
@@ -68,7 +68,7 @@ objects:
                 name: mongodb-configmap
           image: docker-registry.default.svc:5000/mitzicom-poc-dev/mlbparks:latest
           imagePullPolicy: Always
-          name: mlbparks
+          name: ${APP_NAME}
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -89,8 +89,8 @@ objects:
   kind: Service
   metadata:
     labels:
-      app: mlbparks
-    name: mlbparks
+      app: ${APP_NAME}
+    name: ${APP_NAME}
   spec:
     ports:
     - name: "8080"
@@ -98,7 +98,7 @@ objects:
       protocol: TCP
       targetPort: 8080
     selector:
-      app: mlbparks
+      app: ${APP_NAME}
     sessionAffinity: None
     type: ClusterIP
 - apiVersion: v1
@@ -113,6 +113,10 @@ objects:
       targetPort: 8080
     to:
       kind: Service
-      name: mlbparks
+      name: ${APP_NAME}
       weight: 100
     wildcardPolicy: None
+parameters:
+  - name: APP_NAME
+    value: mlbparks
+    required: true

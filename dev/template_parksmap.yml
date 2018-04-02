@@ -98,6 +98,5 @@ objects:
     wildcardPolicy: None
 parameters:
 - name: APP_NAME
-  description: "The user name for Joe"
   value: parksmap
   required: true

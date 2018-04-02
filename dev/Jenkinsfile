@@ -119,6 +119,7 @@ node('maven-appdev') {
     openshiftVerifyService apiURL: '', authToken: '', namespace: prodProject, svcName: destApp, verbose: 'false'
 
     sleep 30
+    echo "Calling endpoint:${appUrl}/ws/healthz"
     def health ="curl -f ${appUrl}/ws/healthz".execute().with{
             def output = new StringWriter()
             def error = new StringWriter()
@@ -158,8 +159,8 @@ def getArtifactIdFromPom(pom) {
 }
 
 def loadAppDataForBackEndApps(app,appUrl){
+  echo 'Calling data load endpoint'
   if(app=='mlbparks' || app == 'nationalparks'){
-       echo 'Calling data load endpoint'
        def loadData ="curl -f ${appUrl}/ws/data/load".execute().with{
             def output = new StringWriter()
             def error = new StringWriter()
