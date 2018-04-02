@@ -35,7 +35,7 @@ node('maven-appdev') {
   // Using Maven build the war file
   // Do not run tests in this step
   stage('Build jar/war') {
-    //echo "Building version ${version}"
+    echo "Building version ${version}"
     if(app=='parks' ){
         sh "${mvnCmd} clean package spring-boot:repackage -DskipTests -Dcom.redhat.xpaas.repo.redhatga"
     }else{
@@ -76,6 +76,7 @@ node('maven-appdev') {
   
   stage('Integration tests for backends'){
     openshiftVerifyService namespace: devProject, svcName: app, verbose: 'false'
+    sleep 30
     loadAppDataForBackEndApps(app,appUrl)
     openshiftTag alias: 'false', destStream: app, destTag: prodTag, destinationAuthToken: '', destinationNamespace: devProject, namespace: devProject, srcStream: app, srcTag: devTag, verbose: 'false'
   }
@@ -117,7 +118,7 @@ node('maven-appdev') {
     openshiftVerifyDeployment apiURL: '', authToken: '', depCfg: destApp, namespace: prodProject, replicaCount: '1', verbose: 'false', verifyReplicaCount: 'true', waitTime: '180', waitUnit: 'sec'
     openshiftVerifyService apiURL: '', authToken: '', namespace: prodProject, svcName: destApp, verbose: 'false'
 
-    sleep 60
+    sleep 30
     def health ="curl -f ${appUrl}/ws/healthz".execute().with{
             def output = new StringWriter()
             def error = new StringWriter()
@@ -158,7 +159,7 @@ def getArtifactIdFromPom(pom) {
 
 def loadAppDataForBackEndApps(app,appUrl){
   if(app=='mlbparks' || app == 'nationalparks'){
-        echo 'Calling data load endpoint'
+       echo 'Calling data load endpoint'
        def loadData ="curl -f ${appUrl}/ws/data/load".execute().with{
             def output = new StringWriter()
             def error = new StringWriter()
