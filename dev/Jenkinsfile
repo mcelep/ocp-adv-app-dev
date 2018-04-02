@@ -121,15 +121,16 @@ node('maven-appdev') {
     openshiftVerifyDeployment apiURL: '', authToken: '', depCfg: destApp, namespace: prodProject, replicaCount: '1', verbose: 'false', verifyReplicaCount: 'true', waitTime: '180', waitUnit: 'sec'
     openshiftVerifyService apiURL: '', authToken: '', namespace: prodProject, svcName: destApp, verbose: 'false'
 
-    sleep 30
-    echo "Calling endpoint:${appUrl}/ws/healthz"
-    def health ="curl -f ${appUrl}/ws/healthz".execute().with{
-            def output = new StringWriter()
-            def error = new StringWriter()
-            it.waitForProcessOutput(output, error)
-            assert it.exitValue() == 0 : error
-            echo "App:${app} health:"+output
-    }
+    // sleep 30
+    // echo "Calling endpoint:${appUrl}/ws/healthz"
+    // def health ="curl -f ${appUrl}/ws/healthz".execute().with{
+    //         def output = new StringWriter()
+    //         def error = new StringWriter()
+    //         it.waitForProcessOutput(output, error)
+    //         assert it.exitValue() == 0 : error
+    //         echo "App:${app} health:"+output
+    // }
+
     loadAppDataForBackEndApps(app,appUrl)
   }
 
