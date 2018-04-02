@@ -63,7 +63,7 @@ node('maven-appdev') {
     echo "Building OpenShift container image tasks:${devTag}"
    
     // Start Binary Build in OpenShift using the file we just published
-    sh "oc start-build ${app} --follow --from-file=./${contextDir}/target/parksmap.jar -n ${devProject}"
+    sh "oc start-build ${app} --follow --from-file=./${contextDir}/target/${app}.jar -n ${devProject}"
     openshiftVerifyBuild bldCfg: app, checkForTriggeredDeployments: 'false', namespace: devProject, verbose: 'false', waitTime: ''
 
     // Tag the image using the devTag
