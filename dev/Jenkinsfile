@@ -108,8 +108,8 @@ node('maven-appdev') {
 
     echo "Destapp: ${destApp}"
     
-    sh "oc patch dc/${destApp} -p '{\"spec\":{\"paused\":true}}' "
-    sh "oc patch dc/${destApp} -p '{\"spec\":{\"replicas\":1}}' "
+    sh "oc patch dc/${destApp} -p '{\"spec\":{\"paused\":true}}' -n ${prodProject}"
+    sh "oc patch dc/${destApp} -p '{\"spec\":{\"replicas\":1}}' -n ${prodProject}"
     sh "oc set image dc/${destApp} ${destApp}=docker-registry.default.svc:5000/${devProject}/${app}:${prodTag} -n ${prodProject}"
     if(app!='parksmap'){
      //Handle configurations 
