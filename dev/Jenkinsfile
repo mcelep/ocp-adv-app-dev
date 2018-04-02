@@ -39,7 +39,7 @@ node('maven-appdev') {
     if(app=='parks' ){
         sh "${mvnCmd} clean package spring-boot:repackage -DskipTests -Dcom.redhat.xpaas.repo.redhatga"
     }else{
-        sh "${mvnCmd} clean package -Dmaven.test.skip=true"
+        sh "${mvnCmd}  -Dmaven.test.skip=true -U clean package"
     }
   }
 
