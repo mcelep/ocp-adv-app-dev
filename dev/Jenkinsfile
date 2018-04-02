@@ -115,7 +115,7 @@ node('maven-appdev') {
      //Handle configurations 
 
     }
-    sh "oc patch dc/${destApp} -p '{\"spec\":{\"paused\":false}}'"
+    sh "oc patch dc/${destApp} -p '{\"spec\":{\"paused\":false}}' -n ${prodProject}"
 
     openshiftDeploy apiURL: '', authToken: '', depCfg: destApp, namespace: prodProject, verbose: 'false', waitTime: '180', waitUnit: 'sec'
     openshiftVerifyDeployment apiURL: '', authToken: '', depCfg: destApp, namespace: prodProject, replicaCount: '1', verbose: 'false', verifyReplicaCount: 'true', waitTime: '180', waitUnit: 'sec'
