@@ -18,6 +18,13 @@ objects:
         containers:
           - name: mongo-container
             image: "registry.access.redhat.com/rhscl/mongodb-32-rhel7:3.2"
+            resources:
+              requests:
+                memory: 128Mi
+                cpu: 250m
+              limits:
+                memory: 512Mi
+                cpu: 500m
             ports:
               - containerPort: 27017
             args:
