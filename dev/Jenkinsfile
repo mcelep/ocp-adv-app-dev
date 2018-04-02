@@ -148,7 +148,7 @@ node('maven-appdev') {
 
 
     sh(script: "oc patch route/${app} -p '{\"spec\":{\"to\":{\"name\":\"${destApp}\"}}}' -n ${prodProject}", returnStdout: true)
-    sh "oc patch dc/${activeApp} -p '{\"spec\":{\"replicas\":0}}' "
+    sh "oc patch dc/${activeApp} -p '{\"spec\":{\"replicas\":0}}'  -n ${prodProject}"
   }
 
 }
