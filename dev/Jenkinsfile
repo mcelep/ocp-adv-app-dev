@@ -47,14 +47,10 @@ node('maven-appdev') {
   stage('Unit Tests & Code coverage') {
       parallel( 
         'Unit Test': {
-            node('maven-appdev') {
-              sh "${mvnCmd} test"
-            }
+            sh "${mvnCmd} test"
         }, 
         'Code coverage': {
-            node('maven-appdev') {
-              sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com -Dsonar.projectName=${app}"
-            }
+            sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com -Dsonar.projectName=${app}"
         },
     failFast: true)
   }
