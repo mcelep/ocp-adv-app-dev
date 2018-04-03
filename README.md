@@ -58,10 +58,10 @@ oc cp $(oc get pods --selector deploymentconfig=gogs -o json | jq -r '.items[0].
 Prepare the slave image which includes *skopeo* binary by running the "build.sh" in *jenkins-slave-appdev* folder.
 
 After this create a new project using the newlry created image. You can do this by going into *Manage Jenkins>Configure System* and then adding a new Kubernetes pod template. In our example, we call the new container image *maven-appdev*. 
-![Kubernetes pod template](../images/add_kube_pod_template.png)
+![Kubernetes pod template](./images/add_kube_pod_template.png)
 
 In order to make the build go faster(e.g. reuse .m2 folder which includes all dependencies), one can add a persistent volume claim.
-![Kubernetes pod template persistent volume](../images/add_kube_pod_template_persistent_volume.png)
+![Kubernetes pod template persistent volume](./images/add_kube_pod_template_persistent_volume.png)
 
 
 ## Prepare Openshift
