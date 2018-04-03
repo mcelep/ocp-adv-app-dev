@@ -11,7 +11,7 @@ node('maven-appdev') {
   // bypass the router). The file nexus_openshift_settings.xml
   // needs to be in the Source Code repository.
   def pomFile = "${contextDir}/pom.xml"
-  def mvnCmd = "mvn -s nexus_settings_openshift.xml -f ${pomFile}"
+  def mvnCmd = "mvn -s nexus_settings.xml -f ${pomFile}"
 
   // Checkout Source Code
   stage('Checkout Source') {

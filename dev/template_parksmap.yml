@@ -96,8 +96,8 @@ objects:
   kind: Route
   metadata:
     labels:
-      app: parks
-    name: parks
+      app: ${APP_NAME}
+    name: parksmap
   spec:
     port:
       targetPort: 8080-tcp
