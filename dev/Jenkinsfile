@@ -45,16 +45,18 @@ node('maven-appdev') {
 
   // Running unit tests & code coverage in parallel
   stage('Unit Tests & Code coverage') {
-      parallel 
+      parallel( 
         'Unit Test': {
+            node('maven-appdev') {
               sh "${mvnCmd} test"
+            }
         }, 
         'Code coverage': {
             node('maven-appdev') {
               sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com -Dsonar.projectName=${app}"
             }
         },
-    failFast: true
+    failFast: true)
   }
 
   stage('Publish to Nexus') {
