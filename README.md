@@ -57,14 +57,12 @@ oc cp $(oc get pods --selector deploymentconfig=gogs -o json | jq -r '.items[0].
 ### Jenkins
 Prepare the slave image which includes *skopeo* binary by running the "build.sh" in *jenkins-slave-appdev* folder.
 
+After this create a new 
 
 ## Prepare Applications
 
 oc policy add-role-to-user view --serviceaccount=default
 
-oc new-build --binary=true --name=park --image-stream=redhat-openjdk18-openshift:1.2
-oc new-build --binary=true --name=nationalparks --image-stream=redhat-openjdk18-openshift:1.2
-oc new-build --binary=true --name=mlbparks --image-stream=jboss-eap70-openshift:1.6
 
 
 
