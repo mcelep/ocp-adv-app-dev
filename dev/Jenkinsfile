@@ -17,7 +17,6 @@ node('maven-appdev') {
   stage('Checkout Source') {
     checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'f5cc5f5b-7342-421a-b82d-c94124aad7be', url: 'http://gogs-mitzicom-poc-cicd.apps.na37.openshift.opentlc.com/mc/parks.git']]])
   }
-
  
   // The following variables need to be defined at the top level
   // and not inside the scope of a stage - otherwise they would not
@@ -65,7 +64,7 @@ node('maven-appdev') {
     echo "Building OpenShift container image tasks:${devTag}"
    
     // Start Binary Build in OpenShift using the file we just published
-    sh "oc start-build ${app} --follow --from-file=./${contextDir}/target/${app}.jar -n ${devProject}"
+    sh "oc start-build ${app} --follow --from-file=./${contextDir}/target/${app}.${app=='mlbparks'?'w':'j'}ar -n ${devProject}"
     openshiftVerifyBuild bldCfg: app, checkForTriggeredDeployments: 'false', namespace: devProject, verbose: 'false', waitTime: ''
 
     // Tag the image using the devTag
