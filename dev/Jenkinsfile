@@ -1,6 +1,6 @@
 node('maven-appdev') {
   
-  def app = params.APP
+  def app = params.APP //This parameter is passed due to parameterized build
   def contextDir = app
   
   def cicdProject = 'mitzicom-poc-cicd'
