@@ -9,18 +9,27 @@ Change *env.sh* with a preferred company and project prefix and then run *setup.
 In this stage we setup infrastructure components that build up the CI/CD pipeline. These components reside in their own(**cicd**) project.
 
 ### Nexus
+Nexus is a popular arfifact repository and in this setup we use it store both java build artifacts as well as to store container images.
+An additional benefit of running our nexus is the improved performance when downloading artifacts.
+
 In order to provision a Nexus instance, run the script in nexus directory:
 ```
 cd nexus && ./provision.sh
 ```
 
-Setup nexus artifacts by calling *execute_setup_nexus.sh*
+This script relies on a template:[dev/template-nexus-persistent.yml](./dev/template-nexus-persistent.yml) and it includes a persistent volume claim.
+
+Setup nexus artifacts by calling *execute_setup_nexus.sh* after nexus is up and running. To see the route created, execute *get_nexus_route.sh* . Default credentials are "admin/admin123"
 
 ### Sonarqube
+Sonarqube is used for continuous inspection of code quality to perform automatic reviews with static analysis of code to detect bugs, code smells and security vulnerabilities.
+
 In order to provision SonarQube, run the script in sonarqube directory:
 ```
 cd sonarqube && ./provision.sh
 ```
+
+This script relies on a template:[dev/template-sonarqube.yml](./dev/template-sonarqube.yml) and it includes a persistent volume claim as well as its own persistent Postgresql deployment.
 
 ### Gogs
 In order to create a Gogs repository, run the script in gogs directory:
@@ -54,7 +63,7 @@ oc cp $(oc get pods --selector deploymentconfig=gogs -o json | jq -r '.items[0].
 ```
 
 ### Jenkins
-Prepare the slave image which includes *skopeo* binary by running the "build.sh" in *jenkins-slave-appdev* folder.
+Prepare the slave image which includes *skopeo* binary by running the "build.sh" in *jenkins-slave-appdev* folder. [Skopeo](https://github.com/projectatomic/skopeo) is a tool for pulling and moving images. 
 
 After this create a new project using the newlry created image. You can do this by going into *Manage Jenkins>Configure System* and then adding a new Kubernetes pod template. In our example, we call the new container image *maven-appdev*. 
 ![Kubernetes pod template](./images/add_kube_pod_template.png)
@@ -87,7 +96,7 @@ Create a new job on Jenkins by clicking on 'New Item', select type 'Pipeline' an
 In the next screen, select 'This project is parameterized' option and pick 'Choice paramter' from 'Add parameter' dropdown. Inside 'choices' input field, give *mlbparks*, *nationalparks*, *parksmap* each in a new line and use 'APP' as parameter name.
 ![Jenkins pipeline config](./images/add_jenkins_pipeline_settings_1.png)
 
-Select 'Pipeline script from SCM' from definition drop and use the url of this very repository as input to *Repository URL* field. For script path use [dev/Jenkinsfile](./dev/Jenkinsfile).
+Select 'Pipeline script from SCM' from definition drop and use the url of this very repository as input to *Repository URL* field. For script path use [dev/Jenkinsfile](./dev/Jenkinsfile). Pipeline steps are commented inline and should be self explanatory.
 
 Now that a job is created, just trigger it by selecting the target application from drop-down.
 

@@ -119,7 +119,7 @@ node('maven-appdev') {
     }
 
     echo "Destapp: ${destApp}"
-    // Pause deployment
+    // Pause deployment to prod
     sh "oc patch dc/${destApp} -p '{\"spec\":{\"paused\":true}}' -n ${prodProject}"
     // Make sure there is only 1 replica
     sh "oc patch dc/${destApp} -p '{\"spec\":{\"replicas\":1}}' -n ${prodProject}"
