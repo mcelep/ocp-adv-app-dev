@@ -87,7 +87,9 @@ Create a new job on Jenkins by clicking on 'New Item', select type 'Pipeline' an
 In the next screen, select 'This project is parameterized' option and pick 'Choice paramter' from 'Add parameter' dropdown. Inside 'choices' input field, give *mlbparks*, *nationalparks*, *parksmap* each in a new line and use 'APP' as parameter name.
 ![Jenkins pipeline config](./images/add_jenkins_pipeline_settings_1.png)
 
-Select 'Pipeline script from SCM' from definition drop and use the url of this very repository as input to *Repository URL* field. For script path use [dev/Jenkinsfile(./dev/Jenkinsfile).
+Select 'Pipeline script from SCM' from definition drop and use the url of this very repository as input to *Repository URL* field. For script path use [dev/Jenkinsfile](./dev/Jenkinsfile).
+
+Now that a job is created, just trigger it by selecting the target application from drop-down.
 
 
 
