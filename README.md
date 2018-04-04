@@ -17,7 +17,7 @@ In order to provision a Nexus instance, run the script in nexus directory:
 cd nexus && ./provision.sh
 ```
 
-This script relies on a template:[dev/template-nexus-persistent.yml](./dev/template-nexus-persistent.yml) and it includes a persistent volume claim.
+This script relies on a template:[dev/template-nexus-persistent.yml](./nexus/template-nexus-persistent.yml) and it includes a persistent volume claim.
 
 Setup nexus artifacts by calling *execute_setup_nexus.sh* after nexus is up and running. To see the route created, execute *get_nexus_route.sh* . Default credentials are "admin/admin123"
 
@@ -29,13 +29,14 @@ In order to provision SonarQube, run the script in sonarqube directory:
 cd sonarqube && ./provision.sh
 ```
 
-This script relies on a template:[dev/template-sonarqube.yml](./dev/template-sonarqube.yml) and it includes a persistent volume claim as well as its own persistent Postgresql deployment.
+This script relies on a template:[dev/template-sonarqube.yml](./sonarqube/template-sonarqube.yml) and it includes a persistent volume claim as well as its own persistent Postgresql deployment.
 
 ### Gogs
 In order to create a Gogs repository, run the script in gogs directory:
 ```
 cd gogs && ./provision.sh
 ```
+This script relies on a template:[gogs/template-gogs.yml](./gogs/template-gogs.yml).
 
 After making sure that gogs is running, open the url returned by *get_route* script in gogs directory. Click on register and create a new user.
 
