@@ -53,7 +53,6 @@ For copying the gogs configuration after setting it up:
 oc cp $(oc get pods --selector deploymentconfig=gogs -o json | jq -r '.items[0].metadata.name'):/opt/gogs/custom/conf/app.ini app.ini
 ```
 
-
 ### Jenkins
 Prepare the slave image which includes *skopeo* binary by running the "build.sh" in *jenkins-slave-appdev* folder.
 
@@ -77,9 +76,18 @@ For setting up the **prod** project, go into the prod folder and run the *provis
 - For each application:
 ..- Create One route
 ..- Two services and two deployments configurations for blue/green deployments
-- Also noticed that deployment configuration for nationalparks and mlbparks apps are patched because MongoDB configuration for a replica set is slightly different than standalone configuration.(i.e replicaset name needs to be specified.)
+- Also notice that deployment configuration for nationalparks and mlbparks apps are patched because MongoDB configuration for a replica set is slightly different than standalone configuration.(i.e replicaset name needs to be specified.)
 
 
+## Prepare development & deployment jenkins pipelines
+-
+Create a new job on Jenkins by clicking on 'New Item', select type 'Pipeline' and give a name.
+![Add jenkins job](./images/add_jenkins_pipeline_job.png)
+
+In the next screen, select 'This project is parameterized' option and pick 'Choice paramter' from 'Add parameter' dropdown. Inside 'choices' input field, give *mlbparks*, *nationalparks*, *parksmap* each in a new line and use 'APP' as parameter name.
+![Jenkins pipeline config](./images/add_jenkins_pipeline_settings_1.png)
+
+Select 'Pipeline script from SCM' from definition drop and use the url of this very repository as input to *Repository URL* field. For script path use [dev/Jenkinsfile(./dev/Jenkinsfile).
 
 
 
